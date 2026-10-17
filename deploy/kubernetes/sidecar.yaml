@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: app-with-manty-waf
+  labels:
+    app: app
+spec:
+  containers:
+    - name: app
+      image: app:dev
+      ports:
+        - name: http
+          containerPort: 8081
+    - name: manty-waf
+      image: manty-waf:dev
+      args:
+        - -mode
+        - sidecar
+        - -listen
+        - 127.0.0.1:8080
+        - -upstream
+        - http://127.0.0.1:8081

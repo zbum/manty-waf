@@ -1,0 +1,85 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: manty-ingress
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app
+  namespace: manty-ingress
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app
+  template:
+    metadata:
+      labels:
+        app: app
+    spec:
+      containers:
+        - name: app
+          image: manty-waf:dev
+          imagePullPolicy: IfNotPresent
+          command: ["/usr/local/bin/echoapp"]
+          args: ["-listen", ":8080"]
+          ports:
+            - name: http
+              containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app
+  namespace: manty-ingress
+spec:
+  selector:
+    app: app
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: manty-waf
+  namespace: manty-ingress
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: manty-waf
+  template:
+    metadata:
+      labels:
+        app: manty-waf
+    spec:
+      containers:
+        - name: manty-waf
+          image: manty-waf:dev
+          imagePullPolicy: IfNotPresent
+          args:
+            - -mode
+            - ingress
+            - -listen
+            - :8080
+            - -route
+            - app.example=http://app:8080
+          ports:
+            - name: http
+              containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: manty-waf
+  namespace: manty-ingress
+spec:
+  selector:
+    app: manty-waf
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

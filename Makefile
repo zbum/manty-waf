@@ -3,6 +3,8 @@ CMD := ./cmd/manty-waf
 DIST := dist
 LISTEN ?= :8080
 UPSTREAM ?= http://127.0.0.1:8081
+MODE ?= reverse-proxy
+RUN_ARGS ?= -upstream $(UPSTREAM)
 
 .PHONY: build test build-all clean run
 
@@ -14,7 +16,7 @@ test:
 	go test ./...
 
 run:
-	go run $(CMD) -listen $(LISTEN) -upstream $(UPSTREAM)
+	go run $(CMD) -mode $(MODE) -listen $(LISTEN) $(RUN_ARGS)
 
 build-all:
 	mkdir -p $(DIST)
